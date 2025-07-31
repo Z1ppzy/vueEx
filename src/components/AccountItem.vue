@@ -61,7 +61,7 @@
         <Button
             variant="destructive"
             size="sm"
-            @click="$emit('delete')"
+            @click="handleDelete"
         >
           <Trash2 class="w-4 h-4 mr-2" />
           Удалить
@@ -87,6 +87,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
 const emit = defineEmits<{
   delete: [];
 }>();
@@ -146,6 +147,10 @@ const handleTypeChange = () => {
     passwordError.value = false;
   }
   validateAndUpdate();
+};
+
+const handleDelete = () => {
+  emit('delete');
 };
 
 watch(() => props.account.type, (newType) => {

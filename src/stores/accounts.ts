@@ -1,13 +1,20 @@
 import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import type { Account, Tag } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEY = 'vue-accounts-data';
 
 export const useAccountsStore = defineStore('accounts', () => {
-    const accounts = ref<Account[]>([]);
+    const _accounts = ref<Account[]>([]);
     const isLoaded = ref(false);
+
+    const accounts = computed({
+        get: () => _accounts.value,
+        set: (value: Account[]) => {
+            _accounts.value = value;
+        }
+    });
 
     const loadAccounts = () => {
         try {
@@ -15,12 +22,12 @@ export const useAccountsStore = defineStore('accounts', () => {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) {
-                    accounts.value = parsed;
+                    _accounts.value = parsed;
                 }
             }
         } catch (error) {
             console.error('Ошибка загрузки данных:', error);
-            accounts.value = [];
+            _accounts.value = [];
         }
         isLoaded.value = true;
     };
@@ -29,14 +36,14 @@ export const useAccountsStore = defineStore('accounts', () => {
         if (!isLoaded.value) return;
 
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts.value));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(_accounts.value));
         } catch (error) {
             console.error('Ошибка сохранения данных:', error);
         }
     };
 
     watch(
-        accounts,
+        _accounts,
         () => {
             saveAccounts();
         },
@@ -60,19 +67,19 @@ export const useAccountsStore = defineStore('accounts', () => {
             login: '',
             password: ''
         };
-        accounts.value.push(newAccount);
+        _accounts.value.push(newAccount);
         return newAccount.id;
     };
 
     const updateAccount = (id: string, updates: Partial<Account>) => {
-        const index = accounts.value.findIndex(acc => acc.id === id);
+        const index = _accounts.value.findIndex(acc => acc.id === id);
         if (index !== -1) {
-            accounts.value[index] = { ...accounts.value[index], ...updates };
+            _accounts.value[index] = { ..._accounts.value[index], ...updates };
         }
     };
 
     const deleteAccount = (id: string) => {
-        accounts.value = accounts.value.filter(acc => acc.id !== id);
+        _accounts.value = _accounts.value.filter(acc => acc.id !== id);
     };
 
     const validateAccount = (account: Account): boolean => {

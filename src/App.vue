@@ -29,13 +29,7 @@
             </AlertDescription>
           </Alert>
 
-          <Alert v-if="showSuccessAlert" class="border-green-200 bg-green-50">
-            <CheckCircle class="h-4 w-4 text-green-600" />
-            <AlertTitle class="text-green-800">Успешно!</AlertTitle>
-            <AlertDescription class="text-green-700">
-              {{ successMessage }}
-            </AlertDescription>
-          </Alert>
+
 
           <div v-if="!accountsStore.isLoaded" class="text-center py-8">
             <div class="text-muted-foreground">Загрузка...</div>
@@ -131,13 +125,17 @@
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    <Toast />
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useAccountsStore } from '@/stores/accounts';
+import { useToastStore } from '@/stores/toats.ts';
 import AccountItem from '@/components/AccountItem.vue';
+import Toast from '@/components/Toast.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -151,24 +149,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Users, Info, CheckCircle, Trash2, AlertTriangle } from 'lucide-vue-next';
-
-interface Account {
-  id: string;
-  [key: string]: any;
-}
+import { Plus, Users, Info, Trash2, AlertTriangle } from 'lucide-vue-next';
 
 const accountsStore = useAccountsStore();
+const toastStore = useToastStore();
 
 const showDeleteAccountDialog = ref(false);
 const showClearDialog = ref(false);
-const showSuccessAlert = ref(false);
-const successMessage = ref('');
 const accountToDelete = ref<string | null>(null);
 
 const addNewAccount = () => {
   accountsStore.addAccount();
-  showSuccessNotification('Новая учетная запись добавлена');
+  toastStore.success('Новая учетная запись добавлена');
 };
 
 const showDeleteDialog = (id: string) => {
@@ -179,7 +171,7 @@ const showDeleteDialog = (id: string) => {
 const confirmDeleteAccount = () => {
   if (accountToDelete.value) {
     accountsStore.deleteAccount(accountToDelete.value);
-    showSuccessNotification('Учетная запись успешно удалена');
+    toastStore.success('Учетная запись успешно удалена');
     cancelDelete();
   }
 };
@@ -193,16 +185,7 @@ const confirmClearAll = () => {
   const count = accountsStore.accounts.length;
   accountsStore.accounts = [];
   showClearDialog.value = false;
-  showSuccessNotification(`Удалено ${count} учетных записей`);
-};
-
-const showSuccessNotification = (message: string) => {
-  successMessage.value = message;
-  showSuccessAlert.value = true;
-
-  setTimeout(() => {
-    showSuccessAlert.value = false;
-  }, 3000);
+  toastStore.success(`Удалено ${count} учетных записей`);
 };
 
 onMounted(() => {
